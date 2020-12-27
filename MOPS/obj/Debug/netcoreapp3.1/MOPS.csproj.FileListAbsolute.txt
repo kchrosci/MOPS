@@ -1,0 +1,13 @@
+C:\Users\Filip\Desktop\MOPS\MOPS\bin\Debug\netcoreapp3.1\MOPS.exe
+C:\Users\Filip\Desktop\MOPS\MOPS\bin\Debug\netcoreapp3.1\MOPS.deps.json
+C:\Users\Filip\Desktop\MOPS\MOPS\bin\Debug\netcoreapp3.1\MOPS.runtimeconfig.json
+C:\Users\Filip\Desktop\MOPS\MOPS\bin\Debug\netcoreapp3.1\MOPS.runtimeconfig.dev.json
+C:\Users\Filip\Desktop\MOPS\MOPS\bin\Debug\netcoreapp3.1\MOPS.dll
+C:\Users\Filip\Desktop\MOPS\MOPS\bin\Debug\netcoreapp3.1\MOPS.pdb
+C:\Users\Filip\Desktop\MOPS\MOPS\obj\Debug\netcoreapp3.1\MOPS.csprojAssemblyReference.cache
+C:\Users\Filip\Desktop\MOPS\MOPS\obj\Debug\netcoreapp3.1\MOPS.AssemblyInfoInputs.cache
+C:\Users\Filip\Desktop\MOPS\MOPS\obj\Debug\netcoreapp3.1\MOPS.AssemblyInfo.cs
+C:\Users\Filip\Desktop\MOPS\MOPS\obj\Debug\netcoreapp3.1\MOPS.csproj.CoreCompileInputs.cache
+C:\Users\Filip\Desktop\MOPS\MOPS\obj\Debug\netcoreapp3.1\MOPS.dll
+C:\Users\Filip\Desktop\MOPS\MOPS\obj\Debug\netcoreapp3.1\MOPS.pdb
+C:\Users\Filip\Desktop\MOPS\MOPS\obj\Debug\netcoreapp3.1\MOPS.genruntimeconfig.cache
