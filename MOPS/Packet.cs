@@ -6,14 +6,15 @@ namespace MOPS
 {
     class Packet
     {
-        protected double ArrivalTime { get; set; }
-        protected double ServiceTime { get; set; }
-        protected double arrivalTime;
-        protected double serviceTime;
-        public Packet()
+        public double ArrivalTime { get; set; }
+        public double ServiceTime { get; set; }
+        public double arrivalTime;
+        public double serviceTime = 0.7;
+
+
+        public Packet(double arrivalTime)
 		{
-            arrivalTime = ArrivalTime;
-            serviceTime = ServiceTime;
+            this.arrivalTime = arrivalTime;
 		}
     }
 }

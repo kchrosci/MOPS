@@ -6,5 +6,10 @@ namespace MOPS
 {
     class Event
     {
+        enum Type
+        {
+            Arrival,
+            Departure
+        }
     }
 }

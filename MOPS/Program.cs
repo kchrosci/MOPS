@@ -7,6 +7,7 @@ namespace MOPS
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello World!");
+			Queue q = new Queue();
 		}
 	}
 }
