@@ -4,12 +4,15 @@ using System.Text;
 
 namespace MOPS
 {
-    class Event
+    public class Event
     {
-        enum Type
-        {
-            Arrival,
-            Departure
-        }
+        public static int ARRIVAL = 1;
+        public static int DEPARTURE = 2;
+
+        public double time;
+        public Event(double time)
+		{
+            this.time = time;
+		}
     }
 }
