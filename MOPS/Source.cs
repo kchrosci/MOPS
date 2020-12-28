@@ -34,10 +34,11 @@ namespace MOPS
         
 		}
 
-        public void PacketGeneration(double currentTime)
+        public Packet PacketGeneration(double currentTime)
         {
             packet = new Packet(currentTime);
             packet.ShowPacketInfo();
+            return packet;
         }
     }
 }

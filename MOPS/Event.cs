@@ -10,9 +10,12 @@ namespace MOPS
         public static int DEPARTURE = 2;
 
         public double time;
-        public Event(double time)
+        public int type;
+
+        public Event(double time, int type)
 		{
             this.time = time;
+            this.type = type;
 		}
     }
 }

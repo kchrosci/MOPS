@@ -9,15 +9,20 @@ namespace MOPS
         public double time = 0.0;
         public double simulationTime = 50.0;
         public double packetBreak = 0.5;
+        public int queueLength = 0;
+        public int queueSize = 10;
         
-        public bool isEmpty = true;
+        public bool isServerEmpty = true;
 
         public bool sourceState;
         Event eventObj;
         Source source;
+        Packet packet;
 
         public List<Event> events;
         public double beta = 5;
+        public double packetDelay = 0;
+        public int packetLoss = 0;
 
         public Queue()
         {
@@ -48,10 +53,36 @@ namespace MOPS
                         }
                         else
                         {
-                            eventObj = new Event(time);
-
-                            source.PacketGeneration(time);
+                            eventObj = new Event(time, 1);
+                            packet = source.PacketGeneration(time);
                             events.Add(eventObj);
+
+                            //algorytm zdarzenia przybycia pkaietu
+                            if (isServerEmpty)
+                            {
+                                packet.delay = 0;
+                                packetDelay += 1;
+                                isServerEmpty = false;
+                                eventObj.time = time + packet.serviceTime;
+                                eventObj.type = 2;
+                                events.Add(eventObj);
+
+                                for (int i = 0; i < events.Count; i++)
+                                {
+                                    if (events[i].type == 1)
+                                    {
+                                        events.RemoveAt(i);
+                                        break;
+                                    }                                        
+                                }                                   
+                            }
+                            else
+                            {
+                                queueLength += 1;
+
+                                if (queueLength >= queueSize)
+                                    packetLoss += 1;
+                            }
 
                             currentTimeON += packetBreak;
                             time += packetBreak;
