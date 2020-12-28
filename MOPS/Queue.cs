@@ -12,10 +12,11 @@ namespace MOPS
         public bool isEmpty = true;
         Source source;
         List<Event> events;
+        public double beta = 5;
 
         public Queue()
         {
-            source = new Source(5);
+            source = new Source(beta);
         }
 
         public void StartSimulation()
@@ -25,9 +26,8 @@ namespace MOPS
                 if (time >= simulationTime)
                     break;
                 else
-                {
-                    time = source.PacketGeneration(time,packetBreak);
-                   // time += packetBreak;  
+                {                 
+                    time += source.PacketGeneration(time, packetBreak, beta);
                 }
             }
         }

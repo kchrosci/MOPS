@@ -19,28 +19,32 @@ namespace MOPS
             timeOFF = -(beta) * Math.Log(1 - random.NextDouble());
         }
 
-        public double PacketGeneration(double currentTime, double packetBreak)
+        public double PacketGeneration(double currentTime, double packetBreak, double beta)
         {
             state = true;
-            
+            double currentTimeON = 0;
+
             while (state)
-            {
-                
-                if (currentTime > timeON)
+            {              
+                if (currentTimeON > timeON)
 				{
                     state = false;
-                    currentTime = 0;
-
-                }
-                   
+                    
+                }                 
 				else
 				{
                     packet = new Packet(currentTime);
                     packet.ShowPacketInfo();
+                    currentTimeON += packetBreak;
                     currentTime += packetBreak;
-                }
-                
+                }              
             }
+            currentTime += timeOFF;
+
+            Random random = new Random();
+            timeON = -(beta) * Math.Log(1 - random.NextDouble()); //beta - sredni czas trwania stanu ON/OFF
+            timeOFF = -(beta) * Math.Log(1 - random.NextDouble());
+
             return currentTime;
         }
     }
