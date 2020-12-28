@@ -10,7 +10,7 @@ namespace MOPS
         public double ServiceTime { get; set; }
         public double arrivalTime;
         public double serviceTime = 0.7;
-        public double delay;
+        //public double delay;
 
 
         public Packet(double arrivalTime)

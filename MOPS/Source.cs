@@ -6,8 +6,8 @@ namespace MOPS
 {
     class Source
     {
-        public double timeON; 
-        public double timeOFF;
+        public double timeON = 0; 
+        public double timeOFF = 0;
        
       
         Packet packet;
@@ -37,7 +37,7 @@ namespace MOPS
         public Packet PacketGeneration(double currentTime)
         {
             packet = new Packet(currentTime);
-            packet.ShowPacketInfo();
+            //packet.ShowPacketInfo();
             return packet;
         }
     }
