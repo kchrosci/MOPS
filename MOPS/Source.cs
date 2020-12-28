@@ -6,7 +6,7 @@ namespace MOPS
 {
     class Source
     {
-        public double timeON;
+        public double timeON; 
         public double timeOFF;
         public bool state = false;
         Packet packet;

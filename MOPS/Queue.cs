@@ -18,7 +18,7 @@ namespace MOPS
             source = new Source(5);
         }
 
-        public void Checktime()
+        public void StartSimulation()
         {
             while(true)
             {
@@ -26,7 +26,8 @@ namespace MOPS
                     break;
                 else
                 {
-                    
+                    source.PacketGeneration(time);
+                    time += packetBreak;
                 }
             }
         }

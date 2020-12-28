@@ -8,6 +8,7 @@ namespace MOPS
 		{
 			Console.WriteLine("Hello World!");
 			Queue q = new Queue();
+			q.StartSimulation();
 		}
 	}
 }
