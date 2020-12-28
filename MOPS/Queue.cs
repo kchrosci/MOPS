@@ -22,12 +22,12 @@ namespace MOPS
         {
             while(true)
             {
-                if (simulationTime >= time)
+                if (time >= simulationTime)
                     break;
                 else
                 {
-                    source.PacketGeneration(time);
-                    time += packetBreak;
+                    time = source.PacketGeneration(time,packetBreak);
+                   // time += packetBreak;  
                 }
             }
         }

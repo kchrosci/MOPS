@@ -8,28 +8,40 @@ namespace MOPS
     {
         public double timeON; 
         public double timeOFF;
-        public bool state = false;
+        public bool state;
         Packet packet;
+
 
         public Source(double beta)
         {
             Random random = new Random();
             timeON = -(beta) * Math.Log(1 - random.NextDouble()); //beta - sredni czas trwania stanu ON/OFF
             timeOFF = -(beta) * Math.Log(1 - random.NextDouble());
-            Console.WriteLine("xd");
         }
 
-        public void PacketGeneration(double currentTime)
+        public double PacketGeneration(double currentTime, double packetBreak)
         {
             state = true;
-
-            while(state)
+            
+            while (state)
             {
+                
                 if (currentTime > timeON)
+				{
                     state = false;
-                else
+                    currentTime = 0;
+
+                }
+                   
+				else
+				{
                     packet = new Packet(currentTime);
+                    packet.ShowPacketInfo();
+                    currentTime += packetBreak;
+                }
+                
             }
+            return currentTime;
         }
     }
 }
