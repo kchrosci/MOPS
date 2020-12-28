@@ -16,6 +16,7 @@ namespace MOPS
 		{
             this.arrivalTime = arrivalTime;
 		}
+
         public void ShowPacketInfo()
 		{
             Console.WriteLine(arrivalTime);
