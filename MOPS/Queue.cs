@@ -59,25 +59,27 @@ namespace MOPS
                     
                     while (source.timeON + source.timeOFF > (time - lastTimeOFF - lastTimeON))
                     {
-                        if (events.Count != 0 && (currentTimeON != 0 || time == 0))
+
+                        sortEventList();
+
+                        if (events.Count != 0 && events[0].time > time && (time != lastTimeOFF + lastTimeON || time != 0))
                         {
+                            //if ()
+                            
+                           time = events[0].time;
                            
-                            sortEventList();
-                            time = events[0].time;
-                            currentTimeON = events[0].time - lastTimeON - lastTimeOFF;
                             //events.RemoveAt(0);
                             // czy tu usuwac z listy czy nie
                         }
 
+                        currentTimeON = time - lastTimeON - lastTimeOFF;
                         Console.WriteLine("CZAS SYSTEMU " + time);
 
                         if (sourceState && simulationTime > time && ((events.Count == 0 || events[0].type == 1) || (events[0].time>time)))
                         {
-                            if (currentTimeON > source.timeON)
-                            {
-                                sourceState = false;
-                            }
-                            else
+
+                            
+                            if (sourceState)
                             {
                                 if (nextPacket == null)
                                     packet = source.PacketGeneration(time);
@@ -107,6 +109,9 @@ namespace MOPS
                                 }
                                 else
                                 {
+                                    eventObj = new Event(outTime + packet.serviceTime, 2);
+                                    events.Add(eventObj);
+
                                     packetQueue.Add(packet);
                                     queueLength += 1;
                                     
@@ -114,12 +119,19 @@ namespace MOPS
                                     if (queueLength >= queueSize)
                                         packetLoss += 1;
                                 }
+
+                                
+                            }
+
+                            if (currentTimeON + packetBreak > source.timeON)
+                            {
+                                sourceState = false;
                             }
 
                             //events.RemoveAt(0);
                             generationTime += packetBreak;
                         }
-                        else if (simulationTime > time && events.Count != 0 && events[0].type == 2 && events[0].time < time + source.timeOFF)
+                        else if (simulationTime > time && events.Count != 0 && events[0].type == 2 && events[0].time <= time)
                         {
                             if (queueLength == 0)
                             {
@@ -129,10 +141,10 @@ namespace MOPS
                             else
                             {
                                 queueLength -= 1;
-                                delay += (time - packetQueue[0].arrivalTime - packet.serviceTime);
+                                delay += (time - packetQueue[0].arrivalTime);
                                 delayAmount += 1;
-                                eventObj = new Event(outTime + packet.serviceTime, 2);
-                                events.Add(eventObj);
+                                //eventObj = new Event(outTime + packet.serviceTime, 2);
+                                //events.Add(eventObj);
                                 packetQueue.RemoveAt(0);
                             }
 
@@ -141,6 +153,7 @@ namespace MOPS
                         }
                         else
                         {
+                            //time += lastTimeON + lastTimeOFF;
                             time = source.timeOFF + source.timeON + lastTimeON + lastTimeOFF;
                             generationTime = time;
                             outTime = time;
@@ -155,10 +168,10 @@ namespace MOPS
 
                         }
 
-                        if(events.Count!=0  && source.timeON + source.timeOFF < events[0].time )
-						{
-                            break;
-						}
+      //                  if(events.Count!=0  && source.timeON + source.timeOFF < events[0].time )
+						//{
+      //                      break;
+						//}
                     }
                 }
             }
