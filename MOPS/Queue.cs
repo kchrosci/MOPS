@@ -9,7 +9,7 @@ namespace MOPS
         public double time = 0.0;
         public double generationTime = 0.0;
         public double outTime = 0;
-        public double simulationTime = 50.0;
+        public double simulationTime = 5.0;
         public double packetBreak = 0.5;
         public int queueLength = 0;
         public int queueSize = 10;
@@ -24,7 +24,7 @@ namespace MOPS
 
         public List<Event> events;
         public List<Packet> packetQueue;
-        public double beta = 5;
+        public double beta = 1;
         public double delay = 0;
         public double delayAmount = 0;
         public int packetLoss = 0;
@@ -41,34 +41,37 @@ namespace MOPS
         {
             events = new List<Event>();
             packetQueue = new List<Packet>();
-
-            while(true)
+           
+            while (true)
             {
+               
                 if (time >= simulationTime)
                     break;
                 else
                 {
                     lastTimeON += source.timeON;
                     lastTimeOFF += source.timeOFF;
-
-                    source.TimeGenerator(beta);                    
+                    nextPacket = null;
+                    source.TimeGenerator(beta);
+                    double currentTimeON = 0;
                     ShowTime(source.timeON, source.timeOFF);
                     //sourceState = true;
-                    double currentTimeON = 0;
-
+                    
                     while (source.timeON + source.timeOFF > (time - lastTimeOFF - lastTimeON))
                     {
-                        if (events.Count != 0)
+                        if (events.Count != 0 && (currentTimeON != 0 || time == 0))
                         {
+                           
                             sortEventList();
                             time = events[0].time;
                             currentTimeON = events[0].time - lastTimeON - lastTimeOFF;
                             //events.RemoveAt(0);
+                            // czy tu usuwac z listy czy nie
                         }
 
                         Console.WriteLine("CZAS SYSTEMU " + time);
 
-                        if (sourceState && simulationTime > time && (events.Count == 0 || events[0].type == 1))
+                        if (sourceState && simulationTime > time && ((events.Count == 0 || events[0].type == 1) || (events[0].time>time)))
                         {
                             if (currentTimeON > source.timeON)
                             {
@@ -84,7 +87,8 @@ namespace MOPS
                                 //events.Add(eventObj);
 
                                 if (currentTimeON + packetBreak < source.timeON)
-                                {
+                                { 
+        //Planowanie pakietu czyli jego juz generwoanie ale z czasem takim jak ponizej czyli na poczatku 0 +0.5.
                                     nextPacket = source.PacketGeneration(generationTime + packetBreak);
                                     eventObj = new Event(generationTime + packetBreak, 1);
                                     events.Add(eventObj);
@@ -105,7 +109,8 @@ namespace MOPS
                                 {
                                     packetQueue.Add(packet);
                                     queueLength += 1;
-
+                                    
+                                    //Spradzamy czy kolejka jest wieksza niż jej wielkość
                                     if (queueLength >= queueSize)
                                         packetLoss += 1;
                                 }
@@ -114,7 +119,7 @@ namespace MOPS
                             //events.RemoveAt(0);
                             generationTime += packetBreak;
                         }
-                        else if (simulationTime > time && events.Count != 0 && events[0].type == 2)
+                        else if (simulationTime > time && events.Count != 0 && events[0].type == 2 && events[0].time < time + source.timeOFF)
                         {
                             if (queueLength == 0)
                             {
@@ -124,7 +129,7 @@ namespace MOPS
                             else
                             {
                                 queueLength -= 1;
-                                delay += (time - packetQueue[0].ArrivalTime);
+                                delay += (time - packetQueue[0].arrivalTime - packet.serviceTime);
                                 delayAmount += 1;
                                 eventObj = new Event(outTime + packet.serviceTime, 2);
                                 events.Add(eventObj);
@@ -136,7 +141,7 @@ namespace MOPS
                         }
                         else
                         {
-                            time += source.timeOFF;
+                            time = source.timeOFF + source.timeON + lastTimeON + lastTimeOFF;
                             generationTime = time;
                             outTime = time;
                             sourceState = true;
@@ -145,8 +150,15 @@ namespace MOPS
 
                         if (events.Count != 0 && time >= events[0].time)
                         {
+                            Console.WriteLine("Usunieto event " + events[0].time +" typ: " + events[0].type);
                             events.RemoveAt(0);
+
                         }
+
+                        if(events.Count!=0  && source.timeON + source.timeOFF < events[0].time )
+						{
+                            break;
+						}
                     }
                 }
             }
