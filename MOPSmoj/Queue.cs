@@ -17,6 +17,7 @@ namespace MOPS
        
         public void AddPacket(Packet packet)
 		{
+           // Console.WriteLine($"dodano pakiet: {packet.ArrivalTime}");
             packetNumber = packets.Count;
             time = packet.ArrivalTime;
             packets.Add(packet);

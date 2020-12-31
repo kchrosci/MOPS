@@ -12,7 +12,6 @@ namespace MOPS
 		public double lastTimeON = 0;
 		public double packetBreak=0.5;
 		readonly double serviceTime = 0.7;
-		public static int counter = 0;
 
 		public double Beta { get; set; } = 1;
 		public double Delay { get; set; }
@@ -36,34 +35,37 @@ namespace MOPS
 				Event _event = new Event(Time, Event.Arrival); // czas, typ
 				AddEventToList(_event);
 
-				lastTimeOFF = TimeOFF;
-				lastTimeON = TimeON;
+				lastTimeOFF += TimeOFF;
+				lastTimeON += TimeON;
 
 				source.TimeGenerator(Beta);
 				TimeON = source.TimeON;
 				TimeOFF = source.TimeOFF;
-				counter = 0;
+				
 
 				while (TimeON + TimeOFF > Time - lastTimeOFF - lastTimeON)
 				{
 					if (Time >= SimulationTime) break;
 
-					if ((events.Count == 0 && queue.packets.Count == 0)) break;
+					if ((events.Count == 0 && queue.packets.Count == 0))
+					{
+						Time = TimeOFF + TimeON + lastTimeOFF+lastTimeON;
+						break;
+					}
 
 					if(Time - lastTimeON - lastTimeOFF <= TimeON + TimeOFF)
 					{
 						if(events.Any())
 						{
 							_event = TakeNextEvent();
-							Time = events[0].Time;
 						}
 
 						Console.WriteLine("Current time of the server is: " + Time);
 
 						if (_event.Type == 1)
 						{
-							currentTimeOn = Time - lastTimeOFF - lastTimeON;
-							if (currentTimeOn + packetBreak < TimeON )
+							//currentTimeOn = Time - lastTimeOFF - lastTimeON;
+							if (Time + packetBreak < TimeON )
 							{
 								AddEventToList(new Event(Time + packetBreak, Event.Arrival));
 								Console.WriteLine($"Zaplanowano zdarzenie przybycia do systemu na: {Time + packetBreak}");
@@ -76,6 +78,7 @@ namespace MOPS
 							else
 							{
 								AddEventToList(new Event(Time + serviceTime, Event.Departure));
+								Console.WriteLine($"Zaplanowano zdarzenie OPUSZCZENIA  systemu: {Time + serviceTime}");
 							}
 
 							if (TimeOFF + TimeON < events[0].Time)
@@ -92,8 +95,8 @@ namespace MOPS
 						// jezeli pakiet jest typu Departure
 						else if (_event.Type == 2)
 						{
+							Console.WriteLine($"Usunięto pakiet o: {Time} przybył on do symulacji o {queue.packets[0].ArrivalTime}");
 							queue.RemovePacket(Time);
-							Console.WriteLine($"Usunięto pakiet o: {Time}");
 							if (queue.packets.Count <= 0) {  }
 							else
 							{

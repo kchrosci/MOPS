@@ -6,9 +6,6 @@ namespace MOPS
 {
     public class Event
     {
-        public static int ARRIVAL = 1;
-        public static int DEPARTURE = 2;
-
         public double time;
         public int type;
 
