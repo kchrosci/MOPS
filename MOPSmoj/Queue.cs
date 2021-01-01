@@ -13,6 +13,7 @@ namespace MOPS
         protected int packetNumber = 0;
         protected double surface = 0.0;
         protected double time = 0.0;
+        public int packetDiscarded = 0;
 
        
         public void AddPacket(Packet packet)
@@ -32,7 +33,9 @@ namespace MOPS
 
         internal void ShowResults()
         {
-            throw new NotImplementedException();
+            
         }
-    }
+
+
+	}
 }

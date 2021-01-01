@@ -10,8 +10,8 @@ namespace MOPS
 
 		public double lastTimeOFF = 0;
 		public double lastTimeON = 0;
-		public double packetBreak=0.5;
-		readonly double serviceTime = 0.7;
+		public double packetBreak = 0.2;
+		public double serviceTime = 1;
 
 		public double Beta { get; set; } = 1;
 		public double Delay { get; set; }
@@ -20,6 +20,7 @@ namespace MOPS
 		public double currentTimeOn { get; set; } = 0;
 		public double Time { get; set; }
 		public double SimulationTime { get; set; } = 5;
+		public int QueueLength { get; set; }
 
 		public List<Event> events = new List<Event>();
 
@@ -32,6 +33,7 @@ namespace MOPS
 			
 			while (Time < SimulationTime)
 			{
+				
 				Event _event = new Event(Time, Event.Arrival); // czas, typ
 				AddEventToList(_event);
 
@@ -65,14 +67,21 @@ namespace MOPS
 						if (_event.Type == 1)
 						{
 							//currentTimeOn = Time - lastTimeOFF - lastTimeON;
-							if (Time + packetBreak < TimeON )
+							if (Time + packetBreak < TimeON + lastTimeOFF + lastTimeON )
 							{
 								AddEventToList(new Event(Time + packetBreak, Event.Arrival));
 								Console.WriteLine($"Zaplanowano zdarzenie przybycia do systemu na: {Time + packetBreak}");
 							}
-
-							queue.AddPacket(new Packet(Time, serviceTime));
-
+							
+							if(QueueLength > queue.packets.Count)
+							{
+								queue.AddPacket(new Packet(Time, serviceTime));
+							}
+							else
+							{
+								Console.WriteLine("Packet DISCARDED!");
+								queue.packetDiscarded++;
+							}
 							//planuje opuszczenie systemu dopiero gdy zostal 1 
 							if (queue.packets.Count > 1) { }
 							else
@@ -81,9 +90,9 @@ namespace MOPS
 								Console.WriteLine($"Zaplanowano zdarzenie OPUSZCZENIA  systemu: {Time + serviceTime}");
 							}
 
-							if (TimeOFF + TimeON < events[0].Time)
+							if (TimeOFF + TimeON + lastTimeOFF + lastTimeON < events[0].Time)
 							{
-								Time = TimeOFF + TimeON;
+								Time = TimeOFF + TimeON+ lastTimeOFF + lastTimeON ;
 							}
 							else
 							{
@@ -97,15 +106,21 @@ namespace MOPS
 						{
 							Console.WriteLine($"Usunięto pakiet o: {Time} przybył on do symulacji o {queue.packets[0].ArrivalTime}");
 							queue.RemovePacket(Time);
-							if (queue.packets.Count <= 0) {  }
+							if (queue.packets.Count <= 0) 
+							{
+								if(events.Any())
+									Time = events[0].Time;
+								else
+									Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
+							}
 							else
 							{
 								AddEventToList(new Event(Time + serviceTime, Event.Departure));
 								Console.WriteLine($"Zaplanowano zdarzenie opuszczenia systemu na: {Time + serviceTime}");
 
-								if (TimeOFF + TimeON < events[0].Time)
+								if (TimeOFF + TimeON + lastTimeON + lastTimeOFF < events[0].Time)
 								{
-									Time = TimeOFF + TimeON;
+									Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
 								}
 								else
 								{
