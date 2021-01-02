@@ -10,8 +10,8 @@ namespace MOPS
 
 		public double lastTimeOFF = 0;
 		public double lastTimeON = 0;
-		public double packetBreak = 0.2;
-		public double serviceTime = 1;
+		public double packetBreak = 0.3;
+		public double serviceTime = 0.9;
 
 		public double Beta { get; set; } = 1;
 		public double Delay { get; set; }
@@ -20,15 +20,18 @@ namespace MOPS
 		public double currentTimeOn { get; set; } = 0;
 		public double Time { get; set; }
 		public double SimulationTime { get; set; } = 5;
-		public int QueueLength { get; set; }
+		public int QueueLength { get; set; } = 5;
 
 		public List<Event> events = new List<Event>();
 
+		Source source;
+		Queue queue;
+
 		internal void StartSimulation()
 		{	
-			Source source = new Source();
+			source = new Source();
+			queue = new Queue();
 
-			Queue queue = new Queue();
 			Time = 0;
 			
 			while (Time < SimulationTime)
@@ -66,6 +69,9 @@ namespace MOPS
 
 						if (_event.Type == 1)
 						{
+							queue.packetNumber++;
+							Console.WriteLine("NUMER PAKIETU: " + queue.packetNumber);
+
 							//currentTimeOn = Time - lastTimeOFF - lastTimeON;
 							if (Time + packetBreak < TimeON + lastTimeOFF + lastTimeON )
 							{
@@ -79,8 +85,8 @@ namespace MOPS
 							}
 							else
 							{
-								Console.WriteLine("Packet DISCARDED!");
 								queue.packetDiscarded++;
+								Console.WriteLine("Packet DISCARDED! NUMER: " + queue.packetDiscarded);								
 							}
 							//planuje opuszczenie systemu dopiero gdy zostal 1 
 							if (queue.packets.Count > 1) { }
@@ -104,6 +110,9 @@ namespace MOPS
 						// jezeli pakiet jest typu Departure
 						else if (_event.Type == 2)
 						{
+							queue.delay += Time - queue.packets[0].ArrivalTime - serviceTime;
+							queue.delayNumber++;
+
 							Console.WriteLine($"Usunięto pakiet o: {Time} przybył on do symulacji o {queue.packets[0].ArrivalTime}");
 							queue.RemovePacket(Time);
 							if (queue.packets.Count <= 0) 
@@ -171,10 +180,10 @@ namespace MOPS
 		{
 			Console.WriteLine("************************ RESULTS ************************");
 			Console.WriteLine($"Total time: {Time}" );
-			Console.WriteLine($"Mean packet delay: {Time}" );
+			Console.WriteLine($"Mean packet delay: {queue.delay/queue.delayNumber}" );
 			Console.WriteLine($"Packets delayed: {Time}" );
 			Console.WriteLine($"Mean server load: {Time}" );
-			Console.WriteLine($"Mean packet loss: {Time}");
+			Console.WriteLine($"Mean packet loss: {(double)queue.packetDiscarded / queue.packetNumber * 100}%");
 
 		}
 	}
