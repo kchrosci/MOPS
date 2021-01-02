@@ -19,7 +19,7 @@ namespace MOPS
 		public double TimeOFF { get; set; }
 		public double currentTimeOn { get; set; } = 0;
 		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 1;
+		public double SimulationTime { get; set; } = 5;
 		public int QueueLength { get; set; } = 5;
 
 		public List<Event> events = new List<Event>();
@@ -43,11 +43,11 @@ namespace MOPS
 				lastTimeOFF += TimeOFF;
 				lastTimeON += TimeON;
 
-				//source.TimeGenerator(Beta);
-				//TimeON = source.TimeON;
-				//TimeOFF = source.TimeOFF;
-				TimeOFF = 0.51;
-				TimeON = 0.17;
+				source.TimeGenerator(Beta);
+				TimeON = source.TimeON;
+				TimeOFF = source.TimeOFF;
+				//TimeOFF = 1.54;
+				//TimeON = 1.28;
 				
 
 				while (TimeON + TimeOFF > Time - lastTimeOFF - lastTimeON && events.Count != 0)
@@ -60,20 +60,20 @@ namespace MOPS
 						break;
 					}
 					
-					if(events.Any())
+					if(events.Any() && events[0].Time <= SimulationTime)
 					{
 						_event = TakeNextEvent();
 					}
 
 					Console.WriteLine("\nCurrent time of the server is: " + Time);
 
-					if (_event.Type == 1 && Time < SimulationTime)
+					if (_event != null && _event.Type == 1 && Time < SimulationTime)
 					{
 						queue.packetNumber++;
 						Console.WriteLine("NUMER PAKIETU: " + queue.packetNumber);
 
 						//currentTimeOn = Time - lastTimeOFF - lastTimeON;
-						if (Time + packetBreak <= TimeON + lastTimeOFF + lastTimeON )
+						if (Time + packetBreak <= TimeON + lastTimeOFF + lastTimeON && Time + packetBreak <= SimulationTime)
 						{
 							AddEventToList(new Event(Time + packetBreak, Event.Arrival));
 							Console.WriteLine($"Zaplanowano zdarzenie przybycia do systemu na: {Time + packetBreak}");
@@ -114,16 +114,19 @@ namespace MOPS
 								queue.surface += (queue.packets.Count - 1) * (events[0].Time - Time);
 								Console.WriteLine("SURFACE: " + queue.surface);
 								Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
-
 							}
 								
 							Time = events[0].Time;
 						}
-							
+
+						_event = null;
+
+						if (Time >= SimulationTime)
+							Time = SimulationTime;
 
 					}
 					// jezeli pakiet jest typu Departure
-					else if (_event.Type == 2 && Time < SimulationTime)
+					else if (_event != null && _event.Type == 2 && Time <= SimulationTime)
 					{ 
 						queue.delay += (Time - queue.packets[0].ArrivalTime - serviceTime);
 						queue.delayNumber++;
@@ -138,9 +141,9 @@ namespace MOPS
 							else
                             {
 								queue.emptyServer += Math.Min(TimeOFF + TimeON + lastTimeON + lastTimeOFF, SimulationTime) - Time;
-								queue.surface += (queue.packets.Count - 1) * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
+								queue.surface += (queue.packets.Count * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time));
 								Console.WriteLine("SURFACE: " + queue.surface);
-								Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+								Console.WriteLine("KOLEJKA: " + queue.packets.Count);
 								Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
 							}
 									
@@ -170,6 +173,8 @@ namespace MOPS
 								Time = events[0].Time;
 							}
 						}
+
+						_event = null;
 
 						if (Time >= SimulationTime)
 							Time = SimulationTime;
