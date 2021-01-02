@@ -11,7 +11,7 @@ namespace MOPS
 		public double lastTimeOFF = 0;
 		public double lastTimeON = 0;
 		public double packetBreak = 0.1;
-		public double serviceTime = 0.4;
+		public double serviceTime = 0.5;
 
 		public double Beta { get; set; } = 1;
 		public double Delay { get; set; }
@@ -19,8 +19,8 @@ namespace MOPS
 		public double TimeOFF { get; set; }
 		public double currentTimeOn { get; set; } = 0;
 		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 3;
-		public int QueueLength { get; set; } = 2;
+		public double SimulationTime { get; set; } = 2;
+		public int QueueLength { get; set; } = 5;
 
 		public List<Event> events = new List<Event>();
 
@@ -98,10 +98,25 @@ namespace MOPS
 
 							if (TimeOFF + TimeON + lastTimeOFF + lastTimeON < events[0].Time)
 							{
-								Time = TimeOFF + TimeON+ lastTimeOFF + lastTimeON ;
+								if (queue.packets.Count > 1)
+                                {
+									queue.surface += (queue.packets.Count - 1) * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
+									Console.WriteLine("SURFACE: " + queue.surface);
+									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+								}
+								
+								Time = TimeOFF + TimeON+ lastTimeOFF + lastTimeON;
 							}
 							else
 							{
+								if (queue.packets.Count > 1)
+								{
+									queue.surface += (queue.packets.Count - 1) * (events[0].Time - Time);
+									Console.WriteLine("SURFACE: " + queue.surface);
+									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+
+								}
+								
 								Time = events[0].Time;
 							}
 							
@@ -121,7 +136,13 @@ namespace MOPS
 								if (events.Any())
 									Time = events[0].Time;
 								else
+                                {
+									queue.emptyServer += TimeOFF + TimeON + lastTimeON + lastTimeOFF - Time;
+									queue.surface += queue.packets.Count * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
+									Console.WriteLine("SURFACE: " + queue.surface);
 									Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
+								}
+									
 							}
 							else
 							{
@@ -130,10 +151,15 @@ namespace MOPS
 
 								if (TimeOFF + TimeON + lastTimeON + lastTimeOFF < events[0].Time)
 								{
+									queue.surface += queue.packets.Count * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
+									Console.WriteLine("SURFACE: " + queue.surface);
 									Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
+									break;
 								}
 								else
 								{
+									queue.surface += queue.packets.Count * (events[0].Time - Time);
+									Console.WriteLine("SURFACE: " + queue.surface);
 									Time = events[0].Time;
 								}
 							}
@@ -144,6 +170,12 @@ namespace MOPS
 						}
 						else
 						{
+							Console.WriteLine("WYWALONE PO CZASIE: " + queue.packets.Count);
+							queue.packetDiscarded += queue.packets.Count;
+
+							queue.surface += queue.packets.Count * (SimulationTime - Time);
+							Console.WriteLine("SURFACE: " + queue.surface);
+
 							Time = SimulationTime;
 							Console.WriteLine($"Czas symulacji zakończył się. Wynosi {Time}");
 							break;
@@ -154,7 +186,7 @@ namespace MOPS
 						Time = events[0].Time;
 					}
 				}
-			}
+			}			
 		}
 
 		private Event TakeNextEvent()
@@ -186,10 +218,11 @@ namespace MOPS
 		{
 			Console.WriteLine("************************ RESULTS ************************");
 			Console.WriteLine($"Total time: {Time}" );
-			Console.WriteLine($"Mean packet delay: {queue.delay/queue.delayNumber}" );
-			Console.WriteLine($"Packets delayed: {Time}" );
-			Console.WriteLine($"Mean server load: {Time}" );
-			Console.WriteLine($"Mean packet loss: {(double)queue.packetDiscarded / queue.packetNumber * 100}%");
+			Console.WriteLine($"Mean number of packets in queue: {queue.surface/Time}" );
+			Console.WriteLine($"Mean packet delay: {Math.Round((queue.delay/queue.delayNumber), 15)}" );
+			//Console.WriteLine($"Packets delayed: {Math.Round(queue.delay, 15)}" );
+			Console.WriteLine($"Mean server load: {(Time - queue.emptyServer)/Time}" );
+			Console.WriteLine($"Packet loss level: {(double)queue.packetDiscarded / queue.packetNumber * 100}%");
 
 		}
 	}
