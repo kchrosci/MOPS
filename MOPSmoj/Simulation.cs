@@ -10,8 +10,8 @@ namespace MOPS
 
 		public double lastTimeOFF = 0;
 		public double lastTimeON = 0;
-		public double packetBreak = 0.3;
-		public double serviceTime = 0.9;
+		public double packetBreak = 0.1;
+		public double serviceTime = 0.4;
 
 		public double Beta { get; set; } = 1;
 		public double Delay { get; set; }
@@ -19,8 +19,8 @@ namespace MOPS
 		public double TimeOFF { get; set; }
 		public double currentTimeOn { get; set; } = 0;
 		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 5;
-		public int QueueLength { get; set; } = 5;
+		public double SimulationTime { get; set; } = 3;
+		public int QueueLength { get; set; } = 2;
 
 		public List<Event> events = new List<Event>();
 
@@ -65,9 +65,9 @@ namespace MOPS
 							_event = TakeNextEvent();
 						}
 
-						Console.WriteLine("Current time of the server is: " + Time);
+						Console.WriteLine("\nCurrent time of the server is: " + Time);
 
-						if (_event.Type == 1)
+						if (_event.Type == 1 && Time + packetBreak <= SimulationTime)
 						{
 							queue.packetNumber++;
 							Console.WriteLine("NUMER PAKIETU: " + queue.packetNumber);
@@ -109,15 +109,16 @@ namespace MOPS
 						}
 						// jezeli pakiet jest typu Departure
 						else if (_event.Type == 2)
-						{
-							queue.delay += Time - queue.packets[0].ArrivalTime - serviceTime;
+						{ 
+							queue.delay += (Time - queue.packets[0].ArrivalTime - serviceTime);
 							queue.delayNumber++;
+							Console.WriteLine("Obecny DELAY wynosi: " + queue.delay);
 
 							Console.WriteLine($"Usunięto pakiet o: {Time} przybył on do symulacji o {queue.packets[0].ArrivalTime}");
 							queue.RemovePacket(Time);
 							if (queue.packets.Count <= 0) 
 							{
-								if(events.Any())
+								if (events.Any())
 									Time = events[0].Time;
 								else
 									Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
@@ -136,11 +137,16 @@ namespace MOPS
 									Time = events[0].Time;
 								}
 							}
+
+							if (Time >= SimulationTime)
+								Time = SimulationTime;
+							
 						}
 						else
 						{
-							Console.WriteLine("Test");
-							//Time = TimeOFF + TimeON;
+							Time = SimulationTime;
+							Console.WriteLine($"Czas symulacji zakończył się. Wynosi {Time}");
+							break;
 						}
 					}
 					else
