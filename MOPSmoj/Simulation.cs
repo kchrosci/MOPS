@@ -19,7 +19,7 @@ namespace MOPS
 		public double TimeOFF { get; set; }
 		public double currentTimeOn { get; set; } = 0;
 		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 2;
+		public double SimulationTime { get; set; } = 1;
 		public int QueueLength { get; set; } = 5;
 
 		public List<Event> events = new List<Event>();
@@ -43,148 +43,151 @@ namespace MOPS
 				lastTimeOFF += TimeOFF;
 				lastTimeON += TimeON;
 
-				source.TimeGenerator(Beta);
-				TimeON = source.TimeON;
-				TimeOFF = source.TimeOFF;
+				//source.TimeGenerator(Beta);
+				//TimeON = source.TimeON;
+				//TimeOFF = source.TimeOFF;
+				TimeOFF = 0.51;
+				TimeON = 0.17;
 				
 
-				while (TimeON + TimeOFF > Time - lastTimeOFF - lastTimeON)
+				while (TimeON + TimeOFF > Time - lastTimeOFF - lastTimeON && events.Count != 0)
 				{
-					if (Time >= SimulationTime) break;
+					if (Time > SimulationTime) break;
 
 					if ((events.Count == 0 && queue.packets.Count == 0))
 					{
 						Time = TimeOFF + TimeON + lastTimeOFF+lastTimeON;
 						break;
 					}
-
-					if(Time - lastTimeON - lastTimeOFF <= TimeON + TimeOFF)
+					
+					if(events.Any())
 					{
-						if(events.Any())
+						_event = TakeNextEvent();
+					}
+
+					Console.WriteLine("\nCurrent time of the server is: " + Time);
+
+					if (_event.Type == 1 && Time < SimulationTime)
+					{
+						queue.packetNumber++;
+						Console.WriteLine("NUMER PAKIETU: " + queue.packetNumber);
+
+						//currentTimeOn = Time - lastTimeOFF - lastTimeON;
+						if (Time + packetBreak <= TimeON + lastTimeOFF + lastTimeON )
 						{
-							_event = TakeNextEvent();
+							AddEventToList(new Event(Time + packetBreak, Event.Arrival));
+							Console.WriteLine($"Zaplanowano zdarzenie przybycia do systemu na: {Time + packetBreak}");
+						}
+							
+						if(QueueLength >= queue.packets.Count)
+						{
+							queue.AddPacket(new Packet(Time, serviceTime));
+						}
+						else
+						{
+							queue.packetDiscarded++;
+							Console.WriteLine("Packet DISCARDED! NUMER: " + queue.packetDiscarded);								
+						}
+						//planuje opuszczenie systemu dopiero gdy zostal 1 
+						if (queue.packets.Count > 1) { }
+						else
+						{
+							AddEventToList(new Event(Time + serviceTime, Event.Departure));
+							Console.WriteLine($"Zaplanowano zdarzenie OPUSZCZENIA  systemu: {Time + serviceTime}");
 						}
 
-						Console.WriteLine("\nCurrent time of the server is: " + Time);
-
-						if (_event.Type == 1 && Time + packetBreak <= SimulationTime)
+						if (TimeOFF + TimeON + lastTimeOFF + lastTimeON < events[0].Time)
 						{
-							queue.packetNumber++;
-							Console.WriteLine("NUMER PAKIETU: " + queue.packetNumber);
-
-							//currentTimeOn = Time - lastTimeOFF - lastTimeON;
-							if (Time + packetBreak < TimeON + lastTimeOFF + lastTimeON )
-							{
-								AddEventToList(new Event(Time + packetBreak, Event.Arrival));
-								Console.WriteLine($"Zaplanowano zdarzenie przybycia do systemu na: {Time + packetBreak}");
+							if (queue.packets.Count > 1)
+                            {
+								queue.surface += (queue.packets.Count - 1) * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
+								Console.WriteLine("SURFACE: " + queue.surface);
+								Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
 							}
-							
-							if(QueueLength > queue.packets.Count)
-							{
-								queue.AddPacket(new Packet(Time, serviceTime));
-							}
-							else
-							{
-								queue.packetDiscarded++;
-								Console.WriteLine("Packet DISCARDED! NUMER: " + queue.packetDiscarded);								
-							}
-							//planuje opuszczenie systemu dopiero gdy zostal 1 
-							if (queue.packets.Count > 1) { }
-							else
-							{
-								AddEventToList(new Event(Time + serviceTime, Event.Departure));
-								Console.WriteLine($"Zaplanowano zdarzenie OPUSZCZENIA  systemu: {Time + serviceTime}");
-							}
-
-							if (TimeOFF + TimeON + lastTimeOFF + lastTimeON < events[0].Time)
-							{
-								if (queue.packets.Count > 1)
-                                {
-									queue.surface += (queue.packets.Count - 1) * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
-									Console.WriteLine("SURFACE: " + queue.surface);
-									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
-								}
 								
-								Time = TimeOFF + TimeON+ lastTimeOFF + lastTimeON;
+							Time = TimeOFF + TimeON+ lastTimeOFF + lastTimeON;
+						}
+						else
+						{
+							if (queue.packets.Count > 1)
+							{
+								queue.surface += (queue.packets.Count - 1) * (events[0].Time - Time);
+								Console.WriteLine("SURFACE: " + queue.surface);
+								Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+
+							}
+								
+							Time = events[0].Time;
+						}
+							
+
+					}
+					// jezeli pakiet jest typu Departure
+					else if (_event.Type == 2 && Time < SimulationTime)
+					{ 
+						queue.delay += (Time - queue.packets[0].ArrivalTime - serviceTime);
+						queue.delayNumber++;
+						Console.WriteLine("Obecny DELAY wynosi: " + queue.delay);
+
+						Console.WriteLine($"Usunięto pakiet o: {Time} przybył on do symulacji o {queue.packets[0].ArrivalTime}");
+						queue.RemovePacket(Time);
+						if (queue.packets.Count <= 0) 
+						{
+							if (events.Any())
+								Time = events[0].Time;
+							else
+                            {
+								queue.emptyServer += Math.Min(TimeOFF + TimeON + lastTimeON + lastTimeOFF, SimulationTime) - Time;
+								queue.surface += (queue.packets.Count - 1) * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
+								Console.WriteLine("SURFACE: " + queue.surface);
+								Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+								Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
+							}
+									
+						}
+						else
+						{
+							AddEventToList(new Event(Time + serviceTime, Event.Departure));
+							Console.WriteLine($"Zaplanowano zdarzenie opuszczenia systemu na: {Time + serviceTime}");
+
+							if (TimeOFF + TimeON + lastTimeON + lastTimeOFF < events[0].Time)
+							{
+								queue.surface += (queue.packets.Count - 1) * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
+								Console.WriteLine("SURFACE: " + queue.surface);
+								Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+								Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
+								//break;
 							}
 							else
 							{
-								if (queue.packets.Count > 1)
-								{
+								if (!(events[0].Time > SimulationTime))
+                                {
 									queue.surface += (queue.packets.Count - 1) * (events[0].Time - Time);
 									Console.WriteLine("SURFACE: " + queue.surface);
 									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
-
 								}
 								
 								Time = events[0].Time;
 							}
-							
-
 						}
-						// jezeli pakiet jest typu Departure
-						else if (_event.Type == 2)
-						{ 
-							queue.delay += (Time - queue.packets[0].ArrivalTime - serviceTime);
-							queue.delayNumber++;
-							Console.WriteLine("Obecny DELAY wynosi: " + queue.delay);
 
-							Console.WriteLine($"Usunięto pakiet o: {Time} przybył on do symulacji o {queue.packets[0].ArrivalTime}");
-							queue.RemovePacket(Time);
-							if (queue.packets.Count <= 0) 
-							{
-								if (events.Any())
-									Time = events[0].Time;
-								else
-                                {
-									queue.emptyServer += TimeOFF + TimeON + lastTimeON + lastTimeOFF - Time;
-									queue.surface += queue.packets.Count * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
-									Console.WriteLine("SURFACE: " + queue.surface);
-									Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
-								}
-									
-							}
-							else
-							{
-								AddEventToList(new Event(Time + serviceTime, Event.Departure));
-								Console.WriteLine($"Zaplanowano zdarzenie opuszczenia systemu na: {Time + serviceTime}");
-
-								if (TimeOFF + TimeON + lastTimeON + lastTimeOFF < events[0].Time)
-								{
-									queue.surface += queue.packets.Count * (TimeOFF + TimeON + lastTimeOFF + lastTimeON - Time);
-									Console.WriteLine("SURFACE: " + queue.surface);
-									Time = TimeOFF + TimeON + lastTimeON + lastTimeOFF;
-									break;
-								}
-								else
-								{
-									queue.surface += queue.packets.Count * (events[0].Time - Time);
-									Console.WriteLine("SURFACE: " + queue.surface);
-									Time = events[0].Time;
-								}
-							}
-
-							if (Time >= SimulationTime)
-								Time = SimulationTime;
-							
-						}
-						else
-						{
-							Console.WriteLine("WYWALONE PO CZASIE: " + queue.packets.Count);
-							queue.packetDiscarded += queue.packets.Count;
-
-							queue.surface += queue.packets.Count * (SimulationTime - Time);
-							Console.WriteLine("SURFACE: " + queue.surface);
-
+						if (Time >= SimulationTime)
 							Time = SimulationTime;
-							Console.WriteLine($"Czas symulacji zakończył się. Wynosi {Time}");
-							break;
-						}
+							
 					}
 					else
 					{
-						Time = events[0].Time;
+						Console.WriteLine("WYWALONE PO CZASIE: " + queue.packets.Count);
+						queue.packetDiscarded += queue.packets.Count;
+
+						//queue.surface += queue.packets.Count * (SimulationTime - Time);
+						//Console.WriteLine("SURFACE: " + queue.surface);
+
+						Time = SimulationTime;
+						Console.WriteLine($"Czas symulacji zakończył się. Wynosi {Time}");
+						break;
 					}
+					
 				}
 			}			
 		}
