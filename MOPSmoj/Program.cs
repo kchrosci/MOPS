@@ -27,7 +27,7 @@ namespace MOPS
 			Console.WriteLine("Starting simulation...");
 					
 			simulation.StartSimulation();
-			Console.WriteLine("The simulation has been finished! Results:");
+			Console.WriteLine("\nThe simulation has been finished! Results:");
 			simulation.ShowResults();
 		}
 	}

@@ -21,24 +21,12 @@ namespace MOPS
        
         public void AddPacket(Packet packet)
 		{
-           // Console.WriteLine($"dodano pakiet: {packet.ArrivalTime}");
-            //packetNumber = packets.Count;
             time = packet.ArrivalTime;
             packets.Add(packet);
-            // Dorobic zbieranie danych
 		}
         public void RemovePacket(double time)
         {
-            //pakiet opuszcza kolejke, ale nie wiem ile czasu oczekiwał
             packets.RemoveAt(0);
-            // Dorobic zbieranie danych
         }
-
-        internal void ShowResults()
-        {
-            
-        }
-
-
 	}
 }

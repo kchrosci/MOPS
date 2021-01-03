@@ -16,7 +16,7 @@ namespace MOPS
 		{
          
             Random random = new Random();
-            TimeON = -(beta) * Math.Log(1 - random.NextDouble()); //beta - sredni czas trwania stanu ON/OFF
+            TimeON = -(beta) * Math.Log(1 - random.NextDouble());
             TimeOFF = -(beta) * Math.Log(1 - random.NextDouble());
             Console.WriteLine($"\n****** TIME OF STATES ON/OFF HAS BEEN GENERATED *******\nTime ON: {TimeON}\nTime OFF: {TimeOFF}");
         
