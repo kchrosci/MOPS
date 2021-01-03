@@ -11,11 +11,13 @@ namespace MOPS
 
         public double Time { get; }
         public int Type { get; }
+        public int SourceNumber { get; }
 
-        public Event(double time, int type)
+        public Event(double time, int type, int sourceNumber)
 		{
             Time = time;
             Type = type;
+            SourceNumber = sourceNumber;
 		}
     }
 }

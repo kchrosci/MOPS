@@ -8,11 +8,13 @@ namespace MOPS
     {
         public double ArrivalTime { get; }
         public double ServiceTime { get; }
+        public int SourceNumber { get; }
 
-        public Packet(double arrivalTime, double serviceTime)
+        public Packet(double arrivalTime, double serviceTime, int sourceNumber)
 		{
             ArrivalTime = arrivalTime;
             ServiceTime = serviceTime;
+            SourceNumber = sourceNumber;
 		}
     }
 }

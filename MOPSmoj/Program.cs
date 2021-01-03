@@ -20,9 +20,12 @@ namespace MOPS
 
 			//Console.WriteLine("Enter packet break time: ");
 			//simulation.packetBreak = double.Parse(Console.ReadLine());
-			
+
 			//Console.WriteLine("Enter the length of packet queue: ");
 			//simulation.QueueLength = int.Parse(Console.ReadLine());
+
+			//Console.WriteLine("Enter the number of sources: ");
+			//simulation.NumberOfSources = int.Parse(Console.ReadLine());
 
 			Console.WriteLine("Starting simulation...");
 					
