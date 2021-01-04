@@ -11,17 +11,17 @@ namespace MOPS
 
 		//public double LastTimeOFF { get; set; } = 0;
 		//public double LastTimeON { get; set; } = 0;
-		public double PacketBreak { get; set; } = 0.5;
-		public double ServiceTime { get; set; } = 0.2;
+		public double PacketBreak { get; set; } = 1;
+		public double ServiceTime { get; set; } = 1.2;
 		public double Beta { get; set; } = 0.5;
 		//public double TimeON { get; set; }
 		//public double TimeOFF { get; set; }
 		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 10000;
-		public int QueueLength { get; set; } = 5;
+		public double SimulationTime { get; set; } = 100000;
+		public int QueueLength { get; set; } = 30;
 		//public double CurrentSourceTime { get; set; }
 		//public double LastSourceTime { get; set; }
-		public int NumberOfSources { get; set; } = 2;
+		public int NumberOfSources { get; set; } = 4;
 		//public double TimeDifference { get; set; } = 0.03;
 
 
@@ -194,11 +194,15 @@ namespace MOPS
 							if (queue.packets.Count <= 0)
 							{
 								if (events.Any())
-									//zmiany
+                                {
+									queue.emptyServer += Math.Min(Math.Min(sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime, SimulationTime), events[0].Time) - Time;
 									Time = Math.Min(events[0].Time, sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime);
+								}
+									//zmiany
+									
 								else
 								{
-									queue.emptyServer += Math.Min(sources[i].CurrentSourceTime + sources[i].LastSourceTime, SimulationTime) - Time;
+									queue.emptyServer += Math.Min(sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime, SimulationTime) - Time;
 									queue.surface += (queue.packets.Count * (sources[i].CurrentSourceTime + sources[i].LastSourceTime - Time));
 									Console.WriteLine("SURFACE: " + queue.surface);
 									Console.WriteLine("KOLEJKA: " + queue.packets.Count);
@@ -374,7 +378,7 @@ namespace MOPS
 			Console.WriteLine($"Total time: {Time}" );
 			Console.WriteLine($"Mean number of packets in queue: {queue.surface/Time}" );
 			Console.WriteLine($"Mean packet delay: {Math.Round((queue.delay/queue.delayNumber), 15)}" );
-			Console.WriteLine($"Packets delayed: {queue.delayNumber}");
+			//Console.WriteLine($"Packets delayed: {queue.delayNumber}");
 			Console.WriteLine($"Mean server load: {(Time - queue.emptyServer)/Time}" );
 			Console.WriteLine($"Packet loss level: {(double)queue.packetDiscarded / queue.packetNumber * 100}%");
 		}
