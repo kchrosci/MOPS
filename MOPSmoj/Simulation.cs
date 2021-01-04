@@ -11,14 +11,14 @@ namespace MOPS
 
 		//public double LastTimeOFF { get; set; } = 0;
 		//public double LastTimeON { get; set; } = 0;
-		public double PacketBreak { get; set; } = 1;
-		public double ServiceTime { get; set; } = 1.2;
-		public double Beta { get; set; } = 0.5;
+		public double PacketBreak { get; set; } = 0.01;
+		public double ServiceTime { get; set; } = 0.04;
+		public double Beta { get; set; } = 10;
 		//public double TimeON { get; set; }
 		//public double TimeOFF { get; set; }
 		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 100000;
-		public int QueueLength { get; set; } = 30;
+		public double SimulationTime { get; set; } = 10000;
+		public int QueueLength { get; set; } = 3;
 		//public double CurrentSourceTime { get; set; }
 		//public double LastSourceTime { get; set; }
 		public int NumberOfSources { get; set; } = 4;
@@ -203,7 +203,7 @@ namespace MOPS
 								else
 								{
 									queue.emptyServer += Math.Min(sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime, SimulationTime) - Time;
-									queue.surface += (queue.packets.Count * (sources[i].CurrentSourceTime + sources[i].LastSourceTime - Time));
+									queue.surface += (queue.packets.Count * (sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime - Time));
 									Console.WriteLine("SURFACE: " + queue.surface);
 									Console.WriteLine("KOLEJKA: " + queue.packets.Count);
 									// zmiany za i
@@ -218,7 +218,7 @@ namespace MOPS
 
 								if (CheckSourcesOrEventTime())
 								{
-									queue.surface += (queue.packets.Count - 1) * (sources[i].CurrentSourceTime + sources[i].LastSourceTime - Time);
+									queue.surface += (queue.packets.Count - 1) * (sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime - Time);
 									Console.WriteLine("SURFACE: " + queue.surface);
 									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
 									Time = sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime;
