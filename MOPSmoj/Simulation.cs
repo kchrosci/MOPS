@@ -17,12 +17,12 @@ namespace MOPS
 		//public double TimeON { get; set; }
 		//public double TimeOFF { get; set; }
 		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 2;
+		public double SimulationTime { get; set; } = 10000;
 		public int QueueLength { get; set; } = 5;
 		//public double CurrentSourceTime { get; set; }
 		//public double LastSourceTime { get; set; }
 		public int NumberOfSources { get; set; } = 2;
-		public double TimeDifference { get; set; } = 0.03;
+		//public double TimeDifference { get; set; } = 0.03;
 
 
 		public List<Event> events = new List<Event>();
@@ -32,6 +32,8 @@ namespace MOPS
 
 		Queue queue;
 		Event _event;
+
+		public int sourceIndex;
 		#endregion
 
 		internal void StartSimulation()
@@ -66,7 +68,7 @@ namespace MOPS
 							sources[n].TimeON += TimeDifference * n;
 							sources[n].TimeOFF += TimeDifference * n;
                         }*/
-						//proba asynchronizacji zrodel ale jest do cipy
+						
 
 						sources[n].CurrentSourceTime = sources[n].TimeOFF + sources[n].TimeON;
 						sources[n].LastSourceTime = sources[n].LastTimeOFF + sources[n].LastTimeON;
@@ -152,7 +154,8 @@ namespace MOPS
 							{
 								if (queue.packets.Count > 1)
 								{
-									queue.surface += (queue.packets.Count - 1) * (sources[i].CurrentSourceTime + sources[i].LastSourceTime - Time);
+									//zmiany za i
+									queue.surface += (queue.packets.Count - 1) * (sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime - Time);
 									Console.WriteLine("SURFACE: " + queue.surface);
 									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
 								}
@@ -191,14 +194,16 @@ namespace MOPS
 							if (queue.packets.Count <= 0)
 							{
 								if (events.Any())
-									Time = events[0].Time;
+									//zmiany
+									Time = Math.Min(events[0].Time, sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime);
 								else
 								{
 									queue.emptyServer += Math.Min(sources[i].CurrentSourceTime + sources[i].LastSourceTime, SimulationTime) - Time;
 									queue.surface += (queue.packets.Count * (sources[i].CurrentSourceTime + sources[i].LastSourceTime - Time));
 									Console.WriteLine("SURFACE: " + queue.surface);
 									Console.WriteLine("KOLEJKA: " + queue.packets.Count);
-									Time = sources[i].CurrentSourceTime + sources[i].LastSourceTime;
+									// zmiany za i
+									Time = sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime;
 								}
 
 							}
@@ -207,12 +212,12 @@ namespace MOPS
 								AddEventToList(new Event(Time + ServiceTime, Event.Departure, queue.packets[0].SourceNumber));
 								Console.WriteLine($"Zaplanowano zdarzenie opuszczenia systemu na: {Time + ServiceTime}");
 
-								if (sources[i].CurrentSourceTime + sources[i].LastSourceTime < events[0].Time)
+								if (CheckSourcesOrEventTime())
 								{
 									queue.surface += (queue.packets.Count - 1) * (sources[i].CurrentSourceTime + sources[i].LastSourceTime - Time);
 									Console.WriteLine("SURFACE: " + queue.surface);
 									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
-									Time = sources[i].CurrentSourceTime + sources[i].LastSourceTime;
+									Time = sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime;
 									//break;
 								}
 								else
@@ -319,11 +324,16 @@ namespace MOPS
 			foreach (Source s in sources)
             {
 				if (s.LastSourceTime + s.CurrentSourceTime < events[0].Time)
+				{
+					
+					
 					return true;
+				}
+		
             }
 			return false;
         }
-
+		
 		public double FindShortestTime()
         {
 			double min = double.MaxValue;
@@ -336,24 +346,26 @@ namespace MOPS
 			return min;
 		}
 
-		/*public double findShortestTime()
+		public int FindIndex()
 		{
-			double min = 0;
-			double[] table = new double[2];
+			double min = double.MaxValue;
+			double[] table = new double[NumberOfSources];
 			int i = 0;
 			foreach (Source s in sources)
 			{
 				double x = s.LastSourceTime + s.CurrentSourceTime;
+				
 				table[i] = x;
 
 				if (table[i] < min)
 				{
 					min = table[i];
+					sourceIndex = i;
 				}
 				i++;
 			}
-			return min;
-		}*/
+			return sourceIndex;
+		}
 
 		internal void ShowResults()
 		{
@@ -362,7 +374,7 @@ namespace MOPS
 			Console.WriteLine($"Total time: {Time}" );
 			Console.WriteLine($"Mean number of packets in queue: {queue.surface/Time}" );
 			Console.WriteLine($"Mean packet delay: {Math.Round((queue.delay/queue.delayNumber), 15)}" );
-			Console.WriteLine($"Packets delayed: {Math.Round(queue.delay, 15)}" );
+			Console.WriteLine($"Packets delayed: {queue.delayNumber}");
 			Console.WriteLine($"Mean server load: {(Time - queue.emptyServer)/Time}" );
 			Console.WriteLine($"Packet loss level: {(double)queue.packetDiscarded / queue.packetNumber * 100}%");
 		}
