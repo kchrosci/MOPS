@@ -11,13 +11,13 @@ namespace MOPS
 
 		//public double LastTimeOFF { get; set; } = 0;
 		//public double LastTimeON { get; set; } = 0;
-		public double PacketBreak { get; set; } = 0.2;
-		public double ServiceTime { get; set; } = 0.5;
-		public double Beta { get; set; } = 1;
+		public double PacketBreak { get; set; } = 0.5;
+		public double ServiceTime { get; set; } = 0.2;
+		public double Beta { get; set; } = 0.5;
 		//public double TimeON { get; set; }
 		//public double TimeOFF { get; set; }
 		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 5;
+		public double SimulationTime { get; set; } = 2;
 		public int QueueLength { get; set; } = 5;
 		//public double CurrentSourceTime { get; set; }
 		//public double LastSourceTime { get; set; }
@@ -240,7 +240,7 @@ namespace MOPS
 						#endregion
 
 						#region Main else
-						else
+						else //TU NIGDY NIE WCHODZI, DLATEGO KOD POSZEDL BO GLOWNYM WHILE
 						{
 							Console.WriteLine("WYWALONE PO CZASIE: " + queue.packets.Count);
 							queue.packetDiscarded += queue.packets.Count;
@@ -254,7 +254,14 @@ namespace MOPS
 					break;
 				}
 
-			}			
+			}
+
+			Console.WriteLine("\nWYWALONE PO CZASIE: " + queue.packets.Count);
+			queue.packetDiscarded += queue.packets.Count;
+			//Time = SimulationTime;
+			Console.WriteLine($"Czas symulacji zakończył się. Wynosi {Time}");
+			//break;
+
 		}
 
 		private Event TakeNextEvent()
