@@ -16,10 +16,10 @@ namespace MOPS
 			//simulation.SimulationTime = double.Parse(Console.ReadLine());
 
 			//Console.WriteLine("Enter packet service time: ");
-			//simulation.serviceTime = double.Parse(Console.ReadLine());
+			//simulation.ServiceTime = double.Parse(Console.ReadLine());
 
 			//Console.WriteLine("Enter packet break time: ");
-			//simulation.packetBreak = double.Parse(Console.ReadLine());
+			//simulation.PacketBreak = double.Parse(Console.ReadLine());
 
 			//Console.WriteLine("Enter the length of packet queue: ");
 			//simulation.QueueLength = int.Parse(Console.ReadLine());
@@ -28,7 +28,6 @@ namespace MOPS
 			//simulation.NumberOfSources = int.Parse(Console.ReadLine());
 
 			Console.WriteLine("Starting simulation...");
-					
 			simulation.StartSimulation();
 			Console.WriteLine("\nThe simulation has been finished! Results:");
 			simulation.ShowResults();

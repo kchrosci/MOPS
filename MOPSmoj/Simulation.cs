@@ -9,29 +9,20 @@ namespace MOPS
 	{
 		#region Properties
 
-		//public double LastTimeOFF { get; set; } = 0;
-		//public double LastTimeON { get; set; } = 0;
-		public double PacketBreak { get; set; } = 0.01;
-		public double ServiceTime { get; set; } = 0.04;
-		public double Beta { get; set; } = 10;
-		//public double TimeON { get; set; }
-		//public double TimeOFF { get; set; }
-		public double Time { get; set; }
-		public double SimulationTime { get; set; } = 10000;
-		public int QueueLength { get; set; } = 3;
-		//public double CurrentSourceTime { get; set; }
-		//public double LastSourceTime { get; set; }
-		public int NumberOfSources { get; set; } = 4;
-		//public double TimeDifference { get; set; } = 0.03;
-
+		public double PacketBreak { get; set; }		= 0.2;
+		public double ServiceTime { get; set; }		= 0.08;
+		public double BetaON { get; set; }			= 10;
+		public double BetaOFF { get; set; }			= 10;
+		public double Time { get; set; } 
+		public double SimulationTime { get; set; }	= 20000;
+		public int QueueLength { get; set; }		= 5;
+		public int NumberOfSources { get; set; }	= 4;
 
 		public List<Event> events = new List<Event>();
-
-		Source source;
 		public List<Source> sources = new List<Source>();
-
 		Queue queue;
 		Event _event;
+		Source source;
 
 		public int sourceIndex;
 		#endregion
@@ -50,8 +41,6 @@ namespace MOPS
 			
 			while (Time < SimulationTime)
 			{
-				//int n = 0;
-
 				for (int n = 0; n < NumberOfSources; n++) //wyslanie pierwszego pakietu przez wiele zrodel
 				{					
 					if (Time == sources[n].CurrentSourceTime + sources[n].LastSourceTime) //zabezpieczenie zeby nie wysylalo z kazdego zrodla w jednym momencie tylko asynchronicznie
@@ -59,16 +48,7 @@ namespace MOPS
 						sources[n].LastTimeOFF += sources[n].TimeOFF;
 						sources[n].LastTimeON += sources[n].TimeON;
 
-						sources[n].TimeGenerator(Beta, n);
-
-						/*n++;
-
-						if (n > 0)
-                        {
-							sources[n].TimeON += TimeDifference * n;
-							sources[n].TimeOFF += TimeDifference * n;
-                        }*/
-						
+						sources[n].TimeGenerator(BetaON,BetaOFF, n);
 
 						sources[n].CurrentSourceTime = sources[n].TimeOFF + sources[n].TimeON;
 						sources[n].LastSourceTime = sources[n].LastTimeOFF + sources[n].LastTimeON;
@@ -89,25 +69,15 @@ namespace MOPS
 
 						SortEventList();
 
-						if (events.Count == 0 && queue.packets.Count == 0)
-						{
-							for (int j = 0; j < NumberOfSources - 1; j++)
-                            {
-								Time = sources[j].CurrentSourceTime + sources[j].LastSourceTime;
-								if (sources[j + 1].CurrentSourceTime + sources[j + 1].LastSourceTime < Time)
-									Time = sources[j + 1].CurrentSourceTime + sources[j + 1].LastSourceTime;
-							}								
-							break;
-						}
-
 						if (Time != events[0].Time)
 							break;
 
 						if (CheckFirstEventSource() != i)
                         {
 							i++;
-							if (i == NumberOfSources)
-								i = 0;
+
+							if (i == NumberOfSources) i = 0;
+
 							continue;
                         }
 
@@ -127,7 +97,7 @@ namespace MOPS
 							if (Time + PacketBreak <= sources[i].TimeON + sources[i].LastSourceTime && Time + PacketBreak <= SimulationTime)
 							{
 								AddEventToList(new Event(Time + PacketBreak, Event.Arrival, i));
-								Console.WriteLine($"Zaplanowano zdarzenie przybycia do systemu na: {Time + PacketBreak}");
+								Console.WriteLine($"The system ARRIVAL event is scheduled on: {Time + PacketBreak}");
 							}
 
 							if (QueueLength >= queue.packets.Count)
@@ -146,18 +116,16 @@ namespace MOPS
 							else
 							{
 								AddEventToList(new Event(Time + ServiceTime, Event.Departure, i));
-								Console.WriteLine($"Zaplanowano zdarzenie OPUSZCZENIA  systemu: {Time + ServiceTime}");
+								Console.WriteLine($"The system EXIT event was scheduled: {Time + ServiceTime}");
 							}
 
-							//if (sources[i].CurrentSourceTime + sources[i].LastSourceTime < events[0].Time)
 							if (CheckSourcesOrEventTime())
 							{
 								if (queue.packets.Count > 1)
 								{
-									//zmiany za i
 									queue.surface += (queue.packets.Count - 1) * (sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime - Time);
 									Console.WriteLine("SURFACE: " + queue.surface);
-									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+									Console.WriteLine("QUEUE: " + (queue.packets.Count - 1));
 								}
 								Time = FindShortestTime();
 							}
@@ -167,7 +135,7 @@ namespace MOPS
 								{
 									queue.surface += (queue.packets.Count - 1) * (events[0].Time - Time);
 									Console.WriteLine("SURFACE: " + queue.surface);
-									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+									Console.WriteLine("QUEUE: " + (queue.packets.Count - 1));
 								}
 
 								Time = events[0].Time;
@@ -176,9 +144,10 @@ namespace MOPS
 							_event = null;
 
 							if (Time >= SimulationTime) Time = SimulationTime;
+							
 							i++;
-							if (i == NumberOfSources)
-								i = 0;
+							
+							if (i == NumberOfSources) i = 0;
 						}
 						#endregion
 
@@ -187,9 +156,9 @@ namespace MOPS
 						{
 							queue.delay += (Time - queue.packets[0].ArrivalTime - ServiceTime);
 							queue.delayNumber++;
-							Console.WriteLine("Obecny DELAY wynosi: " + queue.delay);
+							Console.WriteLine("The current DELAY is: " + queue.delay);
 
-							Console.WriteLine($"Usunięto pakiet o: {Time} przybył on do symulacji o {queue.packets[0].ArrivalTime}");
+							Console.WriteLine($"Removed packet at: {Time}. Arrival time: {queue.packets[0].ArrivalTime}");
 							queue.RemovePacket(Time);
 							if (queue.packets.Count <= 0)
 							{
@@ -197,32 +166,27 @@ namespace MOPS
                                 {
 									queue.emptyServer += Math.Min(Math.Min(sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime, SimulationTime), events[0].Time) - Time;
 									Time = Math.Min(events[0].Time, sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime);
-								}
-									//zmiany
-									
+								}						
 								else
 								{
 									queue.emptyServer += Math.Min(sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime, SimulationTime) - Time;
 									queue.surface += (queue.packets.Count * (sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime - Time));
 									Console.WriteLine("SURFACE: " + queue.surface);
-									Console.WriteLine("KOLEJKA: " + queue.packets.Count);
-									// zmiany za i
+									Console.WriteLine("QUEUE: " + queue.packets.Count);
 									Time = sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime;
 								}
-
 							}
 							else
 							{
 								AddEventToList(new Event(Time + ServiceTime, Event.Departure, queue.packets[0].SourceNumber));
-								Console.WriteLine($"Zaplanowano zdarzenie opuszczenia systemu na: {Time + ServiceTime}");
+								Console.WriteLine($"The system EXIT event was scheduled on: {Time + ServiceTime}");
 
 								if (CheckSourcesOrEventTime())
 								{
 									queue.surface += (queue.packets.Count - 1) * (sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime - Time);
 									Console.WriteLine("SURFACE: " + queue.surface);
-									Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+									Console.WriteLine("QUEUE: " + (queue.packets.Count - 1));
 									Time = sources[FindIndex()].CurrentSourceTime + sources[FindIndex()].LastSourceTime;
-									//break;
 								}
 								else
 								{
@@ -230,47 +194,35 @@ namespace MOPS
 									{
 										queue.surface += (queue.packets.Count - 1) * (events[0].Time - Time);
 										Console.WriteLine("SURFACE: " + queue.surface);
-										Console.WriteLine("KOLEJKA: " + (queue.packets.Count - 1));
+										Console.WriteLine("QUEUE: " + (queue.packets.Count - 1));
 									}
-
 									Time = events[0].Time;
 								}
 							}
 
 							_event = null;
 
-							if (Time >= SimulationTime)
-								Time = SimulationTime;
+							if (Time >= SimulationTime)	Time = SimulationTime;
 
 							i++;
-							if (i == NumberOfSources)
-								i = 0;
+
+							if (i == NumberOfSources) i = 0;
 						}
 						#endregion
 
 						#region Main else
-						else //TU NIGDY NIE WCHODZI, DLATEGO KOD POSZEDL BO GLOWNYM WHILE
+						else 
 						{
-							Console.WriteLine("WYWALONE PO CZASIE: " + queue.packets.Count);
-							queue.packetDiscarded += queue.packets.Count;
-							Time = SimulationTime;
-							Console.WriteLine($"Czas symulacji zakończył się. Wynosi {Time}");
-							break;
+							Console.WriteLine($"ERROR");
 						}
 						#endregion
 					}
-
 					break;
 				}
-
 			}
-
-			Console.WriteLine("\nWYWALONE PO CZASIE: " + queue.packets.Count);
+			Console.WriteLine("\nDiscarded after time: " + queue.packets.Count);
 			queue.packetDiscarded += queue.packets.Count;
-			//Time = SimulationTime;
-			Console.WriteLine($"Czas symulacji zakończył się. Wynosi {Time}");
-			//break;
-
+			Console.WriteLine($"Simulation time has finished. Total time: {Time}");
 		}
 
 		private Event TakeNextEvent()
@@ -329,11 +281,8 @@ namespace MOPS
             {
 				if (s.LastSourceTime + s.CurrentSourceTime < events[0].Time)
 				{
-					
-					
 					return true;
 				}
-		
             }
 			return false;
         }
@@ -346,7 +295,6 @@ namespace MOPS
 			{
 				min = Math.Min(min, s.CurrentSourceTime + s.LastSourceTime);
 			}
-
 			return min;
 		}
 
@@ -376,9 +324,9 @@ namespace MOPS
 			Console.WriteLine();
 			Console.WriteLine("************************ RESULTS ************************");
 			Console.WriteLine($"Total time: {Time}" );
+			Console.WriteLine($"Number of packets sent: {queue.packetNumber}");
 			Console.WriteLine($"Mean number of packets in queue: {queue.surface/Time}" );
 			Console.WriteLine($"Mean packet delay: {Math.Round((queue.delay/queue.delayNumber), 15)}" );
-			//Console.WriteLine($"Packets delayed: {queue.delayNumber}");
 			Console.WriteLine($"Mean server load: {(Time - queue.emptyServer)/Time}" );
 			Console.WriteLine($"Packet loss level: {(double)queue.packetDiscarded / queue.packetNumber * 100}%");
 		}
