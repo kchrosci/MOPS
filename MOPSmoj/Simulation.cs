@@ -9,14 +9,14 @@ namespace MOPS
 	{
 		#region Properties
 
-		public double PacketBreak { get; set; }		= 0.2;
-		public double ServiceTime { get; set; }		= 0.08;
-		public double BetaON { get; set; }			= 10;
-		public double BetaOFF { get; set; }			= 10;
+		public double PacketBreak { get; set; }		
+		public double ServiceTime { get; set; }		
+		public double BetaON { get; set; }			
+		public double BetaOFF { get; set; }			
 		public double Time { get; set; } 
-		public double SimulationTime { get; set; }	= 20000;
-		public int QueueLength { get; set; }		= 5;
-		public int NumberOfSources { get; set; }	= 4;
+		public double SimulationTime { get; set; }	
+		public int QueueLength { get; set; }	
+		public int NumberOfSources { get; set; }	
 
 		public List<Event> events = new List<Event>();
 		public List<Source> sources = new List<Source>();
