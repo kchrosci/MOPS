@@ -12,7 +12,7 @@ namespace MOPS
 			Console.WriteLine("Enter the value of betaON: ");
 			simulation.BetaON = double.Parse(Console.ReadLine());
 			
-			Console.WriteLine("Enter the value of beta: ");
+			Console.WriteLine("Enter the value of betaOFF: ");
 			simulation.BetaOFF = double.Parse(Console.ReadLine());
 
 			Console.WriteLine("Enter the simulation time: ");
